@@ -1,4 +1,4 @@
-function HR8799(OWA)
+function HR8799(LyotRadius, maskType, maskPara, fn)
 %% define the HR8799 system
 % only consider contrast in Ks band
 Ks0 = 5.24;
@@ -48,8 +48,15 @@ F.lambda = lambda;
 F.planewave*A; % Just go through the pupil.
 F.grid(F.fft/F.nx); % Go to the focal plane.
 
-FPMASK = AOSegment(F);
-FPMASK.grid(exp(-normalize(F.mag2)/0.1) ); % This is pretty ad hoc.
+% FPMASK = AOSegment(F);
+% FPMASK.grid(exp(-normalize(F.mag2)/0.1) ); % This is pretty ad hoc.
+if strcmp(maskType, 'mask1')
+    FPMASK = mask1(F, maskPara*THld, FOV); % simple plate
+elseif strcmp(maskType, 'mask2')
+    FPMASK = mask2(F, maskPara); % with a threshold
+elseif strcmp(maskType, 'mask3')
+    FPMASK = mask3(F, maskPara);
+end
 
 F.grid(F.fft/F.nx); % Go to the Lyot pupil plane.
 
@@ -58,7 +65,7 @@ LYOT = AOSegment(F);
 
 % This is a better way...
 LYOTSTOP_DEFN = [
-    0 0 (D*OWA)         1 aa 0 0 0 0 0  % undersize the Lyot stop
+    0 0 (D*LyotRadius)         1 aa 0 0 0 0 0  % undersize the Lyot stop
     0 0 (secondary*1.3) 0 aa/2 0 0 0 0 0 % oversize the secondary
     0 0 spider         -2 aa 4 0 D/1.9 0 0
     ];
@@ -78,9 +85,9 @@ PSF = PSF0;
 for i=1:4
     F.planewave(1, [dx(i), dy(i)])*A;
     F.grid(F.fft/F.nx);% go to the focal plane
-    F*FPMASK
+    F*FPMASK;
     F.grid(F.fft/F.nx);% go to the lyot pupil plane
-    F*LYOT
+    F*LYOT;
     [PSFi,thx,thy] = F.mkPSF(FOV,PLATE_SCALE);
     PSF = PSF + contrast(i) * PSFi;
 end
@@ -90,12 +97,6 @@ CCD = photonz(PSF, photonPerExp);
 clf;
 figure(1);
 imagesc(thx, thy, log10(CCD));axis xy;axis equal;colormap(hot);colorbar;
-title(sprintf('Lyot Outer Radius = %.2f', OWA));
-saveas(1,sprintf('Lyot_out_%.2f.png', OWA),'png');
+title(sprintf('%s',fn));
+saveas(1,strcat(fn, '.png'),'png');
 end
-
-
-
-
-
-
