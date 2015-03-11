@@ -9,7 +9,7 @@ FPMASK.name = 'Focal Plane Mask';
 % and should be defined in terms of the diffraction angle.
 Angular_Extent = 2*FOV;
 % Define FPM Diameter
-SPACING = 0.01
+SPACING = 0.01;
 SMOOTHING = SPACING;
 PUPIL_DEFFPM = [0 0 Angular_Extent 1 SMOOTHING 0 0 0 0 0
               0 0 angular_size 0 SMOOTHING/2 0 0 0 0 0];
